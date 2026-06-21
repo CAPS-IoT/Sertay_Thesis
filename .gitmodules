@@ -1,0 +1,3 @@
+[submodule "wamr"]
+	path = SIF_wasm_dht/components/wamr
+	url = https://github.com/sertayy/wasm-micro-runtime.git

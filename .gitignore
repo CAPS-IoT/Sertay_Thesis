@@ -1,0 +1,99 @@
+# Prerequisites
+*.d
+
+# Object files
+*.o
+*.ko
+*.obj
+*.elf
+
+# Linker output
+*.ilk
+*.map
+*.exp
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Libraries
+*.lib
+*.a
+*.la
+*.lo
+
+# Shared objects (inc. Windows DLLs)
+*.dll
+*.so
+*.so.*
+*.dylib
+
+# Executables
+*.exe
+*.out
+*.app
+*.i*86
+*.x86_64
+*.hex
+
+# Debug files
+*.dSYM/
+*.su
+*.idb
+*.pdb
+
+# Kernel Module Compile Results
+*.mod*
+
+# Go module manifests are source files, not kernel module artifacts.
+!go.mod
+!**/go.mod
+*.cmd
+.tmp_versions/
+modules.order
+Module.symvers
+Mkfile.old
+dkms.conf
+
+# Build directory
+build/
+
+# Ignore local ESP-IDF sdkconfig files, but keep shared defaults.
+sdkconfig
+sdkconfig.old
+!sdkconfig.defaults
+!**/sdkconfig.defaults
+
+# ESP-IDF
+SIF_wasm_dht/build/
+SIF_wasm_dht/build_idf54/
+SIF_wasm_dht/managed_components/
+SIF_wasm_dht/sdkconfig
+SIF_wasm_dht/sdkconfig.old
+
+# Rust
+wasm_guests/**/target/
+
+# Go/Kubebuilder outputs
+edge/operator/bin/
+edge/operator/dist/
+edge/host/sif-edge-host
+edge/host/*.test
+edge/host/*.out
+edge/operator/*.test
+edge/operator/*.out
+
+# Generated Wasm artifacts unless deliberately refreshed and documented
+edge/host/dht_reader.wasm
+
+# Local logs, caches, credentials, and workspace state
+__pycache__/
+*.py[cod]
+.go-cache/
+*.kubeconfig
+.env
+.env.*
+!.env.example
+!**/.env.example
+*.log
+.DS_Store

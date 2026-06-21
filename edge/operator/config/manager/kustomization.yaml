@@ -1,0 +1,9 @@
+resources:
+- manager.yaml
+- deadline-profiles.yaml
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+images:
+- name: controller
+  newName: localhost:30500/sif-operator
+  newTag: option-b-20260623-012744

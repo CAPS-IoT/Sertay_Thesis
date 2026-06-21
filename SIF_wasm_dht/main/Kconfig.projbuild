@@ -1,0 +1,99 @@
+menu "SIF Wasm DHT — Migration Config"
+
+    config WIFI_SSID
+        string "WiFi SSID"
+        default "myssid"
+        help
+            SSID of the WiFi network the ESP32 will connect to.
+
+    config WIFI_PASS
+        string "WiFi Password"
+        default ""
+        help
+            Password of the WiFi network. Leave empty for an open network.
+
+    config MQTT_BROKER
+        string "MQTT broker hostname"
+        default "mqtt.caps-platform.de"
+
+    config MQTT_USER
+        string "MQTT username"
+        default "JWT"
+
+    config MQTT_TOKEN
+        string "MQTT password / JWT token"
+        default ""
+        help
+            JWT token used as MQTT password (caps-platform.de uses JWT auth).
+
+    config CAPS_USER_ID
+        int "CAPS platform user ID"
+        default 64
+
+    config CAPS_DEVICE_ID
+        int "CAPS platform device ID"
+        default 199
+
+    config DATA_TOPIC
+        string "MQTT data topic (<userID>/<deviceID>/data)"
+        default "64/199/data"
+        help
+            The CAPS platform only allows publishing/subscribing to
+            <userID>/<deviceID>/data.  All offload and control
+            messages go through this single topic.
+
+    config EDGE_HOST_URL
+        string "Edge host URL for HTTP offload"
+        default "http://192.168.178.86:8080/process"
+        help
+            Full URL of the sif-edge-host /process endpoint.
+            The ESP32 POSTs sensor events here when in edge mode.
+            Format: http://<node-ip>:<nodeport>/process
+
+    config BATTERY_THRESHOLD
+        int "Battery SoC threshold for offloading (%)"
+        default 200
+        help
+            When battery state-of-charge falls below this percentage,
+            execution is offloaded to the Edge via HTTP.
+            Set above 100 to always offload (useful for testing).
+
+    config ACTUATOR_LED_GREEN_GPIO
+        int "GPIO for Wasm actuator green LED (-1 disables)"
+        range -1 39
+        default 17
+        help
+            GPIO driven when Wasm actuatorCommand is 1. Set to -1 to disable
+            the physical green LED actuator output.
+
+    config ACTUATOR_LED_RED_GPIO
+        int "GPIO for Wasm actuator red LED (-1 disables)"
+        range -1 39
+        default 16
+        help
+            GPIO driven when Wasm actuatorCommand is 2. Set to -1 to disable
+            the physical red LED actuator output.
+
+    config DEADLINE_LED_BLUE_GPIO
+        int "GPIO for deadline rejection blue LED (-1 disables)"
+        range -1 39
+        default 18
+        help
+            GPIO used for the temporary two-blink deadline rejection signal.
+
+    config ACTUATOR_LED_ACTIVE_LOW
+        bool "Wasm actuator LEDs are active-low"
+        default y
+        help
+            Enable for the test-board common-anode RGB LED, whose channels turn
+            on when their GPIO is driven low.
+
+    config LED_BOOT_DIAGNOSTIC
+        bool "Run labeled RGB channel diagnostic at boot"
+        default y
+        help
+            Drive green, red, and blue individually for 500 ms each, with all
+            other channels forced off, then leave the RGB LED fully off. The
+            serial labels make the physical GPIO-to-color mapping unambiguous.
+
+endmenu

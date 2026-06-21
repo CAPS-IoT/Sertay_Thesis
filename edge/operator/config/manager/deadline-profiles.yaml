@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: deadline-profiles
+  namespace: system
+data:
+  profiles.json: |
+    {
+      "basic-edge-demo": {
+        "localExecutionMs": 20,
+        "localQueueDelayMs": 200,
+        "resourceWakeMs": 0,
+        "edgeExecutionMs": 2,
+        "networkRoundTripMs": 100,
+        "localInputCollectionMs": 0,
+        "localOutputApplicationMs": 0
+      },
+      "dht-reader": {
+        "localExecutionMs": 50,
+        "localQueueDelayMs": 200,
+        "resourceWakeMs": 0,
+        "edgeExecutionMs": 5,
+        "networkRoundTripMs": 100,
+        "localInputCollectionMs": 20,
+        "localOutputApplicationMs": 0
+      },
+      "hybrid-resource-demo": {
+        "localExecutionMs": 100,
+        "localQueueDelayMs": 200,
+        "resourceWakeMs": 0,
+        "edgeExecutionMs": 5,
+        "networkRoundTripMs": 100,
+        "localInputCollectionMs": 50,
+        "localOutputApplicationMs": 2
+      }
+    }

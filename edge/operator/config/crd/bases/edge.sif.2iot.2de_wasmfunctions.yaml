@@ -1,0 +1,693 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.20.1
+  name: wasmfunctions.edge.sif.2iot.2de
+spec:
+  group: edge.sif.2iot.2de
+  names:
+    kind: WasmFunction
+    listKind: WasmFunctionList
+    plural: wasmfunctions
+    singular: wasmfunction
+  scope: Namespaced
+  versions:
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: WasmFunction is the Schema for the wasmfunctions API
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: spec defines the desired state of WasmFunction
+            properties:
+              device:
+                description: device describes the IoT endpoint that can run the same
+                  Wasm function.
+                properties:
+                  artifactURL:
+                    description: |-
+                      artifactURL is the ESP32-reachable HTTP URL sent in stage_release metadata.
+                      Prefer pointing this at the same operator-authoritative artifact as
+                      operatorWasmURL through a device-reachable address.
+                    type: string
+                  batterySimulation:
+                    description: |-
+                      batterySimulation configures the ESP32's deterministic demo-only battery
+                      source. When enabled is omitted, the operator leaves the device battery
+                      source unmanaged and real gauge telemetry remains authoritative.
+                    properties:
+                      edgeRecoverPercent:
+                        default: 10
+                        description: edgeRecoverPercent is added after every edge/hybrid
+                          Wasm invocation.
+                        format: int32
+                        maximum: 100
+                        minimum: 0
+                        type: integer
+                      enabled:
+                        description: |-
+                          enabled selects simulated battery values when true and the real battery
+                          gauge when false. Omission leaves the current device setting unmanaged.
+                        type: boolean
+                      localDrainPercent:
+                        default: 10
+                        description: localDrainPercent is subtracted after every local
+                          Wasm invocation.
+                        format: int32
+                        maximum: 100
+                        minimum: 0
+                        type: integer
+                    type: object
+                  controlTopic:
+                    description: controlTopic is the MQTT topic where placement commands
+                      are published.
+                    type: string
+                  id:
+                    description: id is a human-readable device identifier used in
+                      status and logs.
+                    type: string
+                  operatorWasmURL:
+                    description: |-
+                      operatorWasmURL is the HTTP URL the operator uses as the authoritative
+                      artifact source. The operator resolves the desired digest from this URL.
+                      Edge host /wasm is synchronized from this source only when edge runtime
+                      execution needs the artifact.
+                    type: string
+                  telemetryTopic:
+                    description: |-
+                      telemetryTopic is the MQTT topic where the device publishes live battery
+                      telemetry for operator-driven auto placement. When omitted, the operator
+                      derives it as <controlTopic>/telemetry.
+                    type: string
+                type: object
+              env:
+                description: env is additional environment variables passed to the
+                  host container.
+                items:
+                  description: EnvVar is a simplified key-value environment variable.
+                  properties:
+                    name:
+                      type: string
+                    value:
+                      type: string
+                  required:
+                  - name
+                  - value
+                  type: object
+                type: array
+              image:
+                default: localhost:30500/sif-edge-host:latest
+                description: image is the container image running the sif-edge-host
+                  binary.
+                type: string
+              placement:
+                description: placement describes the desired execution locality and
+                  battery guardrails.
+                properties:
+                  batteryDelta:
+                    description: batteryDelta configures fast-drain placement decisions.
+                    properties:
+                      enabled:
+                        description: enabled turns on fast-drain placement. Omitted
+                          means enabled.
+                        type: boolean
+                      maxDrainPercent:
+                        description: |-
+                          maxDrainPercent forces edge placement when battery drops by at least this
+                          percentage inside windowSeconds while the device is in local mode.
+                        format: int32
+                        maximum: 100
+                        minimum: 1
+                        type: integer
+                      riskyWindowsToOffload:
+                        description: |-
+                          riskyWindowsToOffload is the number of consecutive risky observations
+                          required before proposing remote placement.
+                        format: int32
+                        minimum: 1
+                        type: integer
+                      windowSeconds:
+                        description: windowSeconds is the telemetry window used to
+                          compare battery samples.
+                        format: int32
+                        minimum: 1
+                        type: integer
+                    type: object
+                  batteryPercent:
+                    description: |-
+                      batteryPercent is an optional manual fallback used when live device
+                      telemetry is unavailable.
+                    format: int32
+                    maximum: 100
+                    minimum: 0
+                    type: integer
+                  batteryThreshold:
+                    description: |-
+                      batteryThreshold configures the classic low/high battery guardrail and
+                      hysteresis policy. It is enabled by default for backwards compatibility.
+                    properties:
+                      enabled:
+                        description: |-
+                          enabled turns on low/high battery threshold placement. Omitted means
+                          enabled so existing resources keep their previous behavior.
+                        type: boolean
+                    type: object
+                  deadline:
+                    description: deadline configures deadline-aware placement decisions.
+                    properties:
+                      enabled:
+                        description: enabled turns on deadline-aware placement. Omitted
+                          means enabled.
+                        type: boolean
+                      estimator:
+                        description: |-
+                          estimator configures the rolling telemetry estimator used for deadline
+                          predictions.
+                        properties:
+                          fallbackEdgeExecutionMs:
+                            description: fallbackEdgeExecutionMs is used until enough
+                              edge execution samples exist.
+                            format: int32
+                            minimum: 0
+                            type: integer
+                          fallbackLocalExecutionMs:
+                            description: fallbackLocalExecutionMs is used until enough
+                              local execution samples exist.
+                            format: int32
+                            minimum: 0
+                            type: integer
+                          fallbackNetworkRoundTripMs:
+                            description: fallbackNetworkRoundTripMs is used until
+                              enough network samples exist.
+                            format: int32
+                            minimum: 0
+                            type: integer
+                          fallbackResourceCollectionMs:
+                            description: |-
+                              fallbackResourceCollectionMs is used until enough device resource collection
+                              samples exist.
+                            format: int32
+                            minimum: 0
+                            type: integer
+                          minSamples:
+                            description: |-
+                              minSamples is the number of samples required before using the configured
+                              percentile instead of fallback values.
+                            format: int32
+                            minimum: 1
+                            type: integer
+                          percentile:
+                            description: percentile selects the sample percentile
+                              used for runtime estimates.
+                            format: int32
+                            maximum: 100
+                            minimum: 1
+                            type: integer
+                          windowSeconds:
+                            description: |-
+                              windowSeconds is the age limit for samples retained in the in-memory
+                              estimator.
+                            format: int32
+                            minimum: 1
+                            type: integer
+                        type: object
+                      minSlackMs:
+                        description: |-
+                          minSlackMs is the minimum predicted slack required to consider a placement
+                          deadline-safe.
+                        format: int32
+                        minimum: 0
+                        type: integer
+                      safetyMarginMs:
+                        description: |-
+                          safetyMarginMs is added to each predicted finish time before slack is
+                          evaluated.
+                        format: int32
+                        minimum: 0
+                        type: integer
+                      targetMs:
+                        description: |-
+                          targetMs is the application deadline budget for one function invocation.
+                          When omitted, the operator uses the latest deadlineTargetMs reported by
+                          device telemetry. If neither value is available, deadline placement waits.
+                        format: int32
+                        minimum: 1
+                        type: integer
+                    type: object
+                  highBatteryThreshold:
+                    default: 60
+                    description: |-
+                      highBatteryThreshold allows local placement at or above this battery level.
+                      The value 101 is reserved for validation runs that must retain remote
+                      placement while a real battery gauge reports 100 percent.
+                    format: int32
+                    maximum: 101
+                    minimum: 0
+                    type: integer
+                  lowBatteryThreshold:
+                    default: 20
+                    description: lowBatteryThreshold forces edge placement at or below
+                      this battery level.
+                    format: int32
+                    maximum: 100
+                    minimum: 0
+                    type: integer
+                  mode:
+                    default: auto
+                    description: 'mode is the requested placement policy: auto, local,
+                      or edge.'
+                    enum:
+                    - auto
+                    - local
+                    - edge
+                    type: string
+                type: object
+              port:
+                default: 8080
+                description: port is the HTTP port the host listens on.
+                format: int32
+                type: integer
+              release:
+                description: |-
+                  release atomically binds the Wasm artifact, logical function identity, and
+                  resource contract under one monotonically increasing generation.
+                properties:
+                  artifactDigest:
+                    description: artifactDigest is the lowercase SHA-256 digest of
+                      the raw Wasm bytes.
+                    pattern: ^[a-f0-9]{64}$
+                    type: string
+                  functionIdentity:
+                    description: |-
+                      functionIdentity is the stable logical guest name used for telemetry and
+                      timing-profile selection.
+                    minLength: 1
+                    type: string
+                  generation:
+                    description: generation is monotonically increased whenever any
+                      release field changes.
+                    format: int64
+                    minimum: 1
+                    type: integer
+                  resourceContract:
+                    description: |-
+                      resourceContract declares the inputs collected and outputs applied for this
+                      release.
+                    properties:
+                      inputs:
+                        items:
+                          description: ResourceInputSpec describes a required input
+                            for Wasm execution.
+                          properties:
+                            keys:
+                              description: keys are typed values collected from this
+                                resource.
+                              items:
+                                description: ResourceInputKeySpec describes one typed
+                                  value collected from a resource.
+                                properties:
+                                  name:
+                                    description: name is the input key, for example
+                                      temperature.
+                                    type: string
+                                  type:
+                                    description: type is the value type exposed through
+                                      the Wasm HAL.
+                                    enum:
+                                    - f32
+                                    - i32
+                                    - string
+                                    - bool
+                                    type: string
+                                required:
+                                - name
+                                type: object
+                              type: array
+                            locality:
+                              description: 'locality declares where the input is available:
+                                device, edge, or portable.'
+                              enum:
+                              - device
+                              - edge
+                              - portable
+                              type: string
+                            name:
+                              description: name is the resource name, for example
+                                DHT.
+                              type: string
+                          required:
+                          - name
+                          type: object
+                        type: array
+                      outputs:
+                        items:
+                          description: ResourceOutputSpec describes a guest output
+                            and where it is applied.
+                          properties:
+                            locality:
+                              description: 'locality declares where the output is
+                                applied: device, edge, or portable.'
+                              enum:
+                              - device
+                              - edge
+                              - portable
+                              type: string
+                            name:
+                              description: name is the guest output key, for example
+                                actuatorCommand.
+                              type: string
+                            type:
+                              description: type is the guest output value type.
+                              enum:
+                              - f32
+                              - i32
+                              - string
+                              - bool
+                              type: string
+                          required:
+                          - name
+                          type: object
+                        type: array
+                    type: object
+                required:
+                - artifactDigest
+                - functionIdentity
+                - generation
+                - resourceContract
+                type: object
+              replicas:
+                default: 1
+                description: replicas is the desired number of host pods.
+                format: int32
+                minimum: 0
+                type: integer
+              wasmPath:
+                default: /app/dht_reader.wasm
+                description: wasmPath is the path to the .wasm module inside the container.
+                type: string
+            required:
+            - image
+            - release
+            type: object
+          status:
+            description: status defines the observed state of WasmFunction
+            properties:
+              acknowledgedReleaseGeneration:
+                description: |-
+                  acknowledgedReleaseGeneration is the latest active generation reported by
+                  the device runtime.
+                format: int64
+                type: integer
+              artifactReadinessReason:
+                description: artifactReadinessReason summarizes current active and
+                  background staging.
+                type: string
+              artifactSyncRetryCount:
+                description: artifactSyncRetryCount counts transient failures in the
+                  current episode.
+                format: int32
+                type: integer
+              artifactSyncStartedAt:
+                description: artifactSyncStartedAt records when the current synchronization
+                  episode began.
+                format: date-time
+                type: string
+              availableReplicas:
+                description: availableReplicas is the number of ready pods.
+                format: int32
+                type: integer
+              conditions:
+                description: conditions represent the current state of the WasmFunction
+                  resource.
+                items:
+                  description: Condition contains details for one aspect of the current
+                    state of this API Resource.
+                  properties:
+                    lastTransitionTime:
+                      description: |-
+                        lastTransitionTime is the last time the condition transitioned from one status to another.
+                        This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.
+                      format: date-time
+                      type: string
+                    message:
+                      description: |-
+                        message is a human readable message indicating details about the transition.
+                        This may be an empty string.
+                      maxLength: 32768
+                      type: string
+                    observedGeneration:
+                      description: |-
+                        observedGeneration represents the .metadata.generation that the condition was set based upon.
+                        For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
+                        with respect to the current state of the instance.
+                      format: int64
+                      minimum: 0
+                      type: integer
+                    reason:
+                      description: |-
+                        reason contains a programmatic identifier indicating the reason for the condition's last transition.
+                        Producers of specific condition types may define expected values and meanings for this field,
+                        and whether the values are considered a guaranteed API.
+                        The value should be a CamelCase string.
+                        This field may not be empty.
+                      maxLength: 1024
+                      minLength: 1
+                      pattern: ^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$
+                      type: string
+                    status:
+                      description: status of the condition, one of True, False, Unknown.
+                      enum:
+                      - "True"
+                      - "False"
+                      - Unknown
+                      type: string
+                    type:
+                      description: type of condition in CamelCase or in foo.example.com/CamelCase.
+                      maxLength: 316
+                      pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$
+                      type: string
+                  required:
+                  - lastTransitionTime
+                  - message
+                  - reason
+                  - status
+                  - type
+                  type: object
+                type: array
+                x-kubernetes-list-map-keys:
+                - type
+                x-kubernetes-list-type: map
+              consecutiveRiskyWindows:
+                description: consecutiveRiskyWindows records confirmed drain observations.
+                format: int32
+                type: integer
+              desiredArtifactDigest:
+                description: |-
+                  desiredArtifactDigest is the SHA-256 digest selected by the operator from
+                  the configured operator artifact source URL.
+                type: string
+              desiredPlacement:
+                description: desiredPlacement is the placement selected by the control
+                  plane.
+                type: string
+              desiredReleaseGeneration:
+                description: desiredReleaseGeneration is the generation selected by
+                  spec.release.
+                format: int64
+                type: integer
+              deviceStagedArtifactDigest:
+                description: |-
+                  deviceStagedArtifactDigest is the release staged on the ESP32 but not
+                  necessarily active yet.
+                type: string
+              endpoint:
+                description: endpoint is the in-cluster service URL (e.g. http://<name>.<ns>:8080/process).
+                type: string
+              hostArtifactDigest:
+                description: |-
+                  hostArtifactDigest is the SHA-256 digest currently served by the edge host
+                  /wasm endpoint.
+                type: string
+              hostStagedArtifactDigest:
+                description: |-
+                  hostStagedArtifactDigest is the release staged on the edge host but not
+                  necessarily active yet.
+                type: string
+              lastAppliedBatterySimulationCommandId:
+                description: |-
+                  lastAppliedBatterySimulationCommandID identifies the latest demo battery
+                  configuration published to the device. observedBatterySource is the
+                  acknowledgement that the requested source is active.
+                type: string
+              lastAppliedHighBatteryThreshold:
+                description: lastAppliedHighBatteryThreshold is the latest high threshold
+                  sent to the device.
+                format: int32
+                type: integer
+              lastAppliedLowBatteryThreshold:
+                description: lastAppliedLowBatteryThreshold is the latest low threshold
+                  sent to the device.
+                format: int32
+                type: integer
+              lastBatterySimulationCommandTime:
+                description: |-
+                  lastBatterySimulationCommandTime is when the latest battery simulation
+                  configuration was published. Fresh telemetry after this time is used to
+                  acknowledge the command or trigger a bounded one-per-observation retry.
+                format: date-time
+                type: string
+              lastCommandId:
+                description: lastCommandID identifies the last idempotent runtime
+                  command.
+                type: string
+              lastCommandTime:
+                description: lastCommandTime is when the latest placement command
+                  was sent.
+                format: date-time
+                type: string
+              lastCommandedPlacement:
+                description: lastCommandedPlacement is the last placement command
+                  sent to the device.
+                type: string
+              lastCommandedRuntimeMode:
+                description: |-
+                  lastCommandedRuntimeMode is the concrete ESP32 runtime mode sent to the
+                  device. For hybrid placement this is edge.
+                type: string
+              lastDeadlineDecisionId:
+                description: lastDeadlineDecisionID identifies the latest unsafe deadline
+                  observation.
+                type: string
+              lastSignaledDeadlineDecisionId:
+                description: lastSignaledDeadlineDecisionID is the last observation
+                  signalled on the device.
+                type: string
+              lastStageCommandId:
+                description: lastStageCommandID identifies the last stage_release
+                  command.
+                type: string
+              lastStageCommandTime:
+                description: lastStageCommandTime is when the latest stage_release
+                  command was sent.
+                format: date-time
+                type: string
+              lastTelemetryTime:
+                description: lastTelemetryTime is when the latest device telemetry
+                  sample was observed.
+                format: date-time
+                type: string
+              observedAdmissionPaused:
+                description: |-
+                  observedAdmissionPaused reports whether the device scheduler is admitting
+                  new invocations for this function.
+                type: boolean
+              observedArtifactDigest:
+                description: |-
+                  observedArtifactDigest is the SHA-256 digest of the currently active wasm
+                  artifact reported by device telemetry.
+                type: string
+              observedBatteryDeltaPercent:
+                description: |-
+                  observedBatteryDeltaPercent is the latest local-mode battery drop computed
+                  by the operator inside the configured batteryDelta window.
+                format: int32
+                type: integer
+              observedBatteryDeltaWindowSeconds:
+                description: |-
+                  observedBatteryDeltaWindowSeconds is the window used for the latest battery
+                  delta calculation.
+                format: int32
+                type: integer
+              observedBatteryPercent:
+                description: observedBatteryPercent records the battery value used
+                  for placement.
+                format: int32
+                type: integer
+              observedBatterySource:
+                description: |-
+                  observedBatterySource records whether the reported battery values are real
+                  gauge readings or simulated values.
+                type: string
+              observedFunction:
+                description: observedFunction is the latest function name reported
+                  by device telemetry.
+                type: string
+              observedMode:
+                description: observedMode is the latest runtime mode reported by device
+                  telemetry.
+                type: string
+              observedVoltageMillivolts:
+                description: observedVoltageMillivolts is the latest battery voltage
+                  reported by the device.
+                format: int32
+                type: integer
+              placementReason:
+                description: placementReason explains why the current desired placement
+                  was selected.
+                type: string
+              predictedCandidateCostMs:
+                description: predictedCandidateCostMs is the destination cost used
+                  for admission.
+                format: int32
+                type: integer
+              predictedCandidateSlackMs:
+                description: predictedCandidateSlackMs is the destination slack used
+                  for admission.
+                format: int32
+                type: integer
+              proposalSource:
+                description: proposalSource identifies the policy that proposed the
+                  candidate.
+                type: string
+              proposedPlacement:
+                description: proposedPlacement is the candidate after resource-locality
+                  transformation.
+                type: string
+              releaseDeliveryState:
+                description: |-
+                  releaseDeliveryState summarizes the end-to-end device release handshake.
+                  Values are Pending, AwaitingStageAck, Staged, AwaitingActivationAck, and Active.
+                type: string
+              selectedFunctionIdentity:
+                description: selectedFunctionIdentity is the logical identity declared
+                  by spec.release.
+                type: string
+              stageCommandAttempts:
+                description: |-
+                  stageCommandAttempts counts sends of the current idempotent stage command.
+                  The first send is attempt one; retries use bounded exponential backoff.
+                format: int32
+                type: integer
+              stagedReleaseGeneration:
+                description: |-
+                  stagedReleaseGeneration is the latest staged generation reported by the
+                  device runtime.
+                format: int64
+                type: integer
+            type: object
+        required:
+        - spec
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
