@@ -1,0 +1,21 @@
+apiVersion: edge.sif.2iot.2de/v1alpha1
+kind: WasmFunction
+metadata:
+  labels:
+    app.kubernetes.io/name: operator
+    app.kubernetes.io/managed-by: kustomize
+  name: dht-reader
+spec:
+  image: "localhost:30500/sif-edge-host:<edge-host-tag>"
+  wasmPath: /app/dht_reader.wasm
+  replicas: 1
+  port: 8080
+  device:
+    id: dht-reader
+    controlTopic: 64/199/data
+    telemetryTopic: 64/199/data/telemetry
+  placement:
+    mode: auto
+    batteryPercent: 0
+    lowBatteryThreshold: 20
+    highBatteryThreshold: 60

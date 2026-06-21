@@ -1,0 +1,32 @@
+# Local binaries and generated build outputs
+bin/
+dist/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+Dockerfile.cross
+
+# Go test, coverage, and workspace-local files
+*.test
+*.out
+coverage.*
+go.work
+go.work.sum
+
+# Editor and IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Local secrets and cluster access files
+*.kubeconfig
+.env
+
+# Keep Kubebuilder source/generated API artifacts in git:
+# - api/v1alpha1/zz_generated.deepcopy.go
+# - config/crd/bases/*.yaml
+# - config/rbac/*.yaml

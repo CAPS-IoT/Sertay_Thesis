@@ -1,0 +1,67 @@
+# Enable RTTI (required by SIF framework - uses dynamic_cast extensively)
+CONFIG_COMPILER_CXX_RTTI=y
+
+# Enable C++ exceptions (required by sif_energy_manager, BNO055, etc.)
+CONFIG_COMPILER_CXX_EXCEPTIONS=y
+
+# Custom partition table — firmware (~1.1 MB) exceeds default 1 MB factory.
+CONFIG_PARTITION_TABLE_CUSTOM=y
+CONFIG_PARTITION_TABLE_CUSTOM_FILENAME="partitions.csv"
+CONFIG_PARTITION_TABLE_FILENAME="partitions.csv"
+
+# 4 MB flash on EzSBC ESP32-Bat (ESP32-WROOM-32E)
+CONFIG_ESPTOOLPY_FLASHSIZE_4MB=y
+CONFIG_ESPTOOLPY_FLASHSIZE="4MB"
+
+# Brownout detector — enabled now that Li-Po battery is connected.
+CONFIG_ESP_BROWNOUT_DET=y
+
+# Lower WiFi TX power to reduce current spikes (max = 78 quarter-dBm = 19.5 dBm).
+# 34 ≈ 8.5 dBm — enough for nearby AP, much gentler on 3V3.
+CONFIG_ESP_PHY_MAX_WIFI_TX_POWER=10
+CONFIG_ESP_PHY_REDUCE_TX_POWER=y
+
+# Local-mode control check-ins only need a short MQTT exchange. Keep WiFi's
+# dynamic buffer footprint small so WAMR can reclaim a contiguous 64KB block.
+CONFIG_ESP_WIFI_STATIC_RX_BUFFER_NUM=4
+CONFIG_ESP_WIFI_DYNAMIC_RX_BUFFER_NUM=8
+CONFIG_ESP_WIFI_DYNAMIC_TX_BUFFER_NUM=8
+CONFIG_ESP_WIFI_RX_BA_WIN=2
+CONFIG_ESP_WIFI_MGMT_SBUF_NUM=6
+CONFIG_LOCAL_CONTROL_CHECKIN_WASM_GUARD_BYTES=73728
+
+# The firmware uses plain MQTT over TCP. Disable unused transports and keep the
+# MQTT task smaller so local-mode check-ins fit beside the WAMR heap guard.
+CONFIG_MQTT_USE_CUSTOM_CONFIG=y
+CONFIG_MQTT_TASK_STACK_SIZE=4096
+# CONFIG_MQTT_TRANSPORT_SSL is not set
+# CONFIG_MQTT_TRANSPORT_WEBSOCKET is not set
+# CONFIG_MQTT_TRANSPORT_WEBSOCKET_SECURE is not set
+
+# WAMR Configuration - disable features not needed/supported on ESP32
+CONFIG_WAMR_ENABLE_INTERP=y
+CONFIG_WAMR_INTERP_FAST=y
+CONFIG_WAMR_ENABLE_AOT=n
+CONFIG_WAMR_ENABLE_LIBC_BUILTIN=y
+CONFIG_WAMR_ENABLE_LIBC_WASI=n
+CONFIG_WAMR_ENABLE_LIB_PTHREAD=n
+CONFIG_WAMR_ENABLE_SHARED_MEMORY=n
+CONFIG_WAMR_ENABLE_MULTI_MODULE=n
+CONFIG_WAMR_ENABLE_MEMORY_PROFILING=n
+CONFIG_WAMR_ENABLE_PERF_PROFILING=n
+CONFIG_WAMR_ENABLE_REF_TYPES=n
+
+# Enable I2C bus 0 for MAX17048 battery fuel gauge
+# EzSBC ESP32-Bat: SDA=21, SCL=22 (defaults)
+CONFIG_I2C_0_ENABLED=y
+CONFIG_I2C_0_SDA_PIN=21
+CONFIG_I2C_0_SCL_PIN=22
+CONFIG_I2C_0_MASTER=y
+
+# Re-enable brownout detector now that we have a battery
+CONFIG_ESP_BROWNOUT_DET=y
+
+# Boot-time Wasm pull from local OCI registry (Phase 2 default).
+# Override via menuconfig → "SIF Wasm DHT — Migration Config".
+CONFIG_WASM_PULL_URL="http://192.168.1.197:8080/wasm"
+CONFIG_WASM_PULL_ALWAYS=n

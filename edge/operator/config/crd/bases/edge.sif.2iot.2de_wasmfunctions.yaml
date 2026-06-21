@@ -1,0 +1,303 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.20.1
+  name: wasmfunctions.edge.sif.2iot.2de
+spec:
+  group: edge.sif.2iot.2de
+  names:
+    kind: WasmFunction
+    listKind: WasmFunctionList
+    plural: wasmfunctions
+    singular: wasmfunction
+  scope: Namespaced
+  versions:
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: WasmFunction is the Schema for the wasmfunctions API
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: spec defines the desired state of WasmFunction
+            properties:
+              device:
+                description: device describes the IoT endpoint that can run the same
+                  Wasm function.
+                properties:
+                  controlTopic:
+                    description: controlTopic is the MQTT topic where placement commands
+                      are published.
+                    type: string
+                  id:
+                    description: id is a human-readable device identifier used in
+                      status and logs.
+                    type: string
+                  operatorWasmURL:
+                    description: |-
+                      operatorWasmURL is the HTTP URL the operator uses as the authoritative
+                      artifact source. The operator resolves the desired digest from this URL and
+                      keeps the edge host /wasm endpoint synchronized to it.
+                    type: string
+                  reloadWasmURL:
+                    description: |-
+                      reloadWasmURL is the HTTP URL sent to the device in a "reload" command
+                      when local execution must fetch or refresh its artifact.
+                    type: string
+                  telemetryTopic:
+                    description: |-
+                      telemetryTopic is the MQTT topic where the device publishes live battery
+                      telemetry for operator-driven auto placement. When omitted, the operator
+                      derives it as <controlTopic>/telemetry.
+                    type: string
+                  wasmURL:
+                    description: |-
+                      wasmURL is a deprecated compatibility fallback used as both the operator
+                      artifact source URL and the device reload URL when the newer split fields
+                      are not set.
+                    type: string
+                type: object
+              env:
+                description: env is additional environment variables passed to the
+                  host container.
+                items:
+                  description: EnvVar is a simplified key-value environment variable.
+                  properties:
+                    name:
+                      type: string
+                    value:
+                      type: string
+                  required:
+                  - name
+                  - value
+                  type: object
+                type: array
+              image:
+                default: localhost:30500/sif-edge-host:latest
+                description: image is the container image running the sif-edge-host
+                  binary.
+                type: string
+              placement:
+                description: placement describes the desired execution locality and
+                  battery guardrails.
+                properties:
+                  batteryPercent:
+                    description: |-
+                      batteryPercent is an optional manual fallback used when live device
+                      telemetry is unavailable.
+                    format: int32
+                    maximum: 100
+                    minimum: 0
+                    type: integer
+                  highBatteryThreshold:
+                    default: 60
+                    description: highBatteryThreshold allows local placement at or
+                      above this battery level.
+                    format: int32
+                    maximum: 100
+                    minimum: 0
+                    type: integer
+                  lowBatteryThreshold:
+                    default: 20
+                    description: lowBatteryThreshold forces edge placement at or below
+                      this battery level.
+                    format: int32
+                    maximum: 100
+                    minimum: 0
+                    type: integer
+                  mode:
+                    default: auto
+                    description: 'mode is the requested placement policy: auto, local,
+                      or edge.'
+                    enum:
+                    - auto
+                    - local
+                    - edge
+                    type: string
+                type: object
+              port:
+                default: 8080
+                description: port is the HTTP port the host listens on.
+                format: int32
+                type: integer
+              replicas:
+                default: 1
+                description: replicas is the desired number of host pods.
+                format: int32
+                minimum: 0
+                type: integer
+              wasmPath:
+                default: /app/dht_reader.wasm
+                description: wasmPath is the path to the .wasm module inside the container.
+                type: string
+            required:
+            - image
+            type: object
+          status:
+            description: status defines the observed state of WasmFunction
+            properties:
+              availableReplicas:
+                description: availableReplicas is the number of ready pods.
+                format: int32
+                type: integer
+              conditions:
+                description: conditions represent the current state of the WasmFunction
+                  resource.
+                items:
+                  description: Condition contains details for one aspect of the current
+                    state of this API Resource.
+                  properties:
+                    lastTransitionTime:
+                      description: |-
+                        lastTransitionTime is the last time the condition transitioned from one status to another.
+                        This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.
+                      format: date-time
+                      type: string
+                    message:
+                      description: |-
+                        message is a human readable message indicating details about the transition.
+                        This may be an empty string.
+                      maxLength: 32768
+                      type: string
+                    observedGeneration:
+                      description: |-
+                        observedGeneration represents the .metadata.generation that the condition was set based upon.
+                        For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
+                        with respect to the current state of the instance.
+                      format: int64
+                      minimum: 0
+                      type: integer
+                    reason:
+                      description: |-
+                        reason contains a programmatic identifier indicating the reason for the condition's last transition.
+                        Producers of specific condition types may define expected values and meanings for this field,
+                        and whether the values are considered a guaranteed API.
+                        The value should be a CamelCase string.
+                        This field may not be empty.
+                      maxLength: 1024
+                      minLength: 1
+                      pattern: ^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$
+                      type: string
+                    status:
+                      description: status of the condition, one of True, False, Unknown.
+                      enum:
+                      - "True"
+                      - "False"
+                      - Unknown
+                      type: string
+                    type:
+                      description: type of condition in CamelCase or in foo.example.com/CamelCase.
+                      maxLength: 316
+                      pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$
+                      type: string
+                  required:
+                  - lastTransitionTime
+                  - message
+                  - reason
+                  - status
+                  - type
+                  type: object
+                type: array
+                x-kubernetes-list-map-keys:
+                - type
+                x-kubernetes-list-type: map
+              desiredArtifactDigest:
+                description: |-
+                  desiredArtifactDigest is the SHA-256 digest selected by the operator from
+                  the configured operator artifact source URL.
+                type: string
+              desiredPlacement:
+                description: desiredPlacement is the placement selected by the control
+                  plane.
+                type: string
+              endpoint:
+                description: endpoint is the in-cluster service URL (e.g. http://<name>.<ns>:8080/process).
+                type: string
+              hostArtifactDigest:
+                description: |-
+                  hostArtifactDigest is the SHA-256 digest currently served by the edge host
+                  /wasm endpoint.
+                type: string
+              lastAppliedHighBatteryThreshold:
+                description: lastAppliedHighBatteryThreshold is the latest high threshold
+                  sent to the device.
+                format: int32
+                type: integer
+              lastAppliedLowBatteryThreshold:
+                description: lastAppliedLowBatteryThreshold is the latest low threshold
+                  sent to the device.
+                format: int32
+                type: integer
+              lastCommandTime:
+                description: lastCommandTime is when the latest placement command
+                  was sent.
+                format: date-time
+                type: string
+              lastCommandedArtifactDigest:
+                description: |-
+                  lastCommandedArtifactDigest is the artifact digest tied to the latest
+                  placement or reload command sent by the operator.
+                type: string
+              lastCommandedPlacement:
+                description: lastCommandedPlacement is the last placement command
+                  sent to the device.
+                type: string
+              lastTelemetryTime:
+                description: lastTelemetryTime is when the latest device telemetry
+                  sample was observed.
+                format: date-time
+                type: string
+              observedArtifactDigest:
+                description: |-
+                  observedArtifactDigest is the SHA-256 digest of the currently active wasm
+                  artifact reported by device telemetry.
+                type: string
+              observedBatteryPercent:
+                description: observedBatteryPercent records the battery value used
+                  for placement.
+                format: int32
+                type: integer
+              observedBatterySource:
+                description: |-
+                  observedBatterySource records whether the reported battery values are real
+                  gauge readings or simulated values.
+                type: string
+              observedMode:
+                description: observedMode is the latest runtime mode reported by device
+                  telemetry.
+                type: string
+              observedVoltageMillivolts:
+                description: observedVoltageMillivolts is the latest battery voltage
+                  reported by the device.
+                format: int32
+                type: integer
+              placementReason:
+                description: placementReason explains why the current desired placement
+                  was selected.
+                type: string
+            type: object
+        required:
+        - spec
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}

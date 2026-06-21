@@ -1,0 +1,77 @@
+menu "SIF Wasm DHT — Migration Config"
+
+    config WIFI_SSID
+        string "WiFi SSID"
+        default "myssid"
+        help
+            SSID of the WiFi network the ESP32 will connect to.
+
+    config WIFI_PASS
+        string "WiFi Password"
+        default ""
+        help
+            Password of the WiFi network. Leave empty for an open network.
+
+    config MQTT_BROKER
+        string "MQTT broker hostname"
+        default "mqtt.caps-platform.de"
+
+    config MQTT_USER
+        string "MQTT username"
+        default "JWT"
+
+    config MQTT_TOKEN
+        string "MQTT password / JWT token"
+        default ""
+        help
+            JWT token used as MQTT password (caps-platform.de uses JWT auth).
+
+    config CAPS_USER_ID
+        int "CAPS platform user ID"
+        default 64
+
+    config CAPS_DEVICE_ID
+        int "CAPS platform device ID"
+        default 199
+
+    config DATA_TOPIC
+        string "MQTT data topic (<userID>/<deviceID>/data)"
+        default "64/199/data"
+        help
+            The CAPS platform only allows publishing/subscribing to
+            <userID>/<deviceID>/data.  All offload and control
+            messages go through this single topic.
+
+    config WASM_PULL_URL
+        string "Wasm blob URL (OCI registry)"
+        default ""
+        help
+            Plain-HTTP URL of the .wasm blob to download on boot
+            (e.g. http://192.168.178.86:5050/v2/dht_reader/blobs/sha256:...).
+            Leave empty to skip the boot-time pull and use the
+            compile-time embedded module.
+
+    config WASM_PULL_ALWAYS
+        bool "Re-download Wasm on every boot"
+        default n
+        help
+            If set, the boot-time pull runs every reset even when the
+            file already exists in SPIFFS. Useful for Phase 2 testing.
+
+    config EDGE_HOST_URL
+        string "Edge host URL for HTTP offload"
+        default "http://192.168.178.108:8080/process"
+        help
+            Full URL of the sif-edge-host /process endpoint.
+            The ESP32 POSTs sensor events here when in edge mode.
+            Format: http://<node-ip>:<nodeport>/process
+
+    config BATTERY_THRESHOLD
+        int "Battery SoC threshold for offloading (%)"
+        default 200
+        help
+            When battery state-of-charge falls below this percentage,
+            execution is offloaded to the Edge via HTTP.
+            Set above 100 to always offload (useful for testing).
+
+endmenu
